@@ -1,0 +1,8 @@
+#SQL
+CREATE TABLE `meets` (
+  `id` INT AUTO_INCREMENT NOT NULL,
+  `title` VARCHAR(50) NULL,
+  `date` TIMESTAMP NULL,
+  `inluck` VARCHAR(20) NULL,
+  CONSTRAINT `PRIMARY` PRIMARY KEY (`id`)
+);

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: person-tes-map
+data:
+  DBHOST: 172.16.103.51
+  DBUSER: root
+  DBPASS: pass@word1
+  DBNAME: pnmdb

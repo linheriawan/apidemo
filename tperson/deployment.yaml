@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: person-tes-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: person-tes
+  template:
+    metadata:
+      labels:
+        app: person-tes
+    spec:
+      containers:
+        - name: person-tes-con
+          image: localhost:5000/person-tes
+          envFrom:
+            - configMapRef:
+                name: person-tes-map
+          ports:
+            - containerPort: 80

@@ -1,0 +1,16 @@
+Options +FollowSymLinks
+RewriteEngine on
+
+## add other protection to your liking
+RewriteRule ^/?libs/(.*)$ - [R=404]
+RewriteRule ^/?.env|/lib_d.php - [R=404]
+
+## this to allow uri access without displaying 'index.php'
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+
+<Files ~ "^index\.php|css|js|.*\.png|.*\.jpg|.*\.gif|.*\.ico">
+    allow from all
+</Files>

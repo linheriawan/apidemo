@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: person-tes-svc
+spec:
+  selector:
+    app: person-tes
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
