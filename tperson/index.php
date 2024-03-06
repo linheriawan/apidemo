@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ ."/lib_d.php";
 putenv("DBHOST=localhost");
-putenv("DBNAME=pnmdb");
+putenv("DBNAME=sitekg2");
 putenv("DBUSER=root");
 putenv("DBPASS=pass@word1");
 
@@ -23,6 +23,18 @@ try{
 		case ":GET":
 			$d=[]; foreach($DB->get_def($dbtable) as $i) { array_push($d,$i->COLUMN_NAME); }
 			$R->json($d);
+		break;
+		case "cargo:GET":
+			$p=$R->get();
+			if(count($p)==1){
+				$k=array_keys($p)[0];
+				if($p[$k]==""){ $p=str_replace("_"," ",$k); }
+			}
+			$rs=$DB->set_table("t_cargo")
+				->select( $p )->offset(2000,100)
+				->result();
+			if($rs[0]=="error"){$R->json($rs[1],400);}
+			else{$R->json($rs);}
 		break;
 		case "person:GET":
 			$p=$R->get();

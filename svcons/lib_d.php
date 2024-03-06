@@ -107,7 +107,7 @@ class Fett{
             "Content-Type"=>"application/json",
             "Accept"=>"application/json",
         ];
-        $this->OPTION=["timeout"=>30];
+        $this->OPTION=["timeout"=>30,"checkssl"=>0];
     }
     static function to($url) { 
       $url=explode("?",$url);
@@ -128,32 +128,56 @@ class Fett{
         $this->OPTION=array_merge($this->OPTION,$opts); return $this;
     }
     public function get(){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return (object)["status"=>$httpCode,"body"=>$ex];
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $this->URL);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+            $ex = curl_exec($ch);
+            // var_dump($ex );
+            if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+            return (object)["status"=>$httpCode,"body"=>$ex];
+        } catch(Exception $e) {
+            trigger_error( sprintf( 'Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
+        } finally {
+            if (is_resource($ch)) { curl_close($ch); }
+        }
     }
     public function post($data){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $this->URL);
+            curl_setopt($ch, CURLOPT_POST, TRUE);
+            if(gettype($data)=="array" && $this->getHeaderValue("Content-Type")=="application/json"){
+                $data=json_encode($data);
+            }else{
+                $data=http_build_query($data);
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+            $ex = curl_exec($ch);
+            if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+            return (object)["status"=>$httpCode,"body"=>$ex];
+        } catch(Exception $e) {
+            trigger_error( sprintf( 'Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
+        } finally {
+            if (is_resource($ch)) { curl_close($ch); }
+        }
     }
     public function put($data){
         $ch = curl_init();
@@ -165,11 +189,14 @@ class Fett{
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
         $ex = curl_exec($ch);
+        if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
+        return (object)["status"=>$httpCode,"body"=>$ex];
     }
     public function patch($data){
         $ch = curl_init();
@@ -181,11 +208,14 @@ class Fett{
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
         $ex = curl_exec($ch);
+        if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
+        return (object)["status"=>$httpCode,"body"=>$ex];
     }
     public function DELETE(){
         $ch = curl_init();
@@ -198,11 +228,14 @@ class Fett{
         // curl_setopt($ch, CURLOPT_HEADER, TRUE);
         // curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
         $ex = curl_exec($ch);
+        if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
+        return (object)["status"=>$httpCode,"body"=>$ex];
     }
 }
 

@@ -31,111 +31,144 @@ function vexp(...$x){
     }
 }
 class Fett{
-    private $URL,$HEADER,$OPTION;
-    function __construct($url){
-        $this->URL=$url;
-        $this->HEADER=[
-            "Cache-Control"=>"no-cache",
-            "Content-Type"=>"application/json",
-            "Accept"=>"application/json",
-        ];
-        $this->OPTION=["timeout"=>30];
-    }
-    static function to($url) { 
-      $url=explode("?",$url);
-      $q=ISSET($url[1])? "?".str_replace(" ","+",$url[1]): ""; 
-      return new self("$url[0]$q"); 
-    }
-    private function getHeaderValue($p){ return $this->HEADER[$p]; }
-    private function getHeader(){
-        $t=[];
-        foreach($this->HEADER as $k=>$v){ array_push($t,"$k: $v"); }
-        return $t;
-    }
-    private function jsonify($j){ return !empty(json_decode($j)) ? json_decode($j) : $j; }
-    public function header($header){
-        $this->HEADER=array_merge($this->HEADER,$header); return $this;
-    }
-    public function options($opts){
-        $this->OPTION=array_merge($this->OPTION,$opts); return $this;
-    }
-    public function get(){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return (object)["status"=>$httpCode,"body"=>$ex];
-    }
-    public function post($data){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
-    }
-    public function put($data){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
-    }
-    public function patch($data){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
-        curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
-    }
-    public function DELETE(){
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->URL);
-        curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        // curl_setopt($ch, CURLOPT_HEADER, TRUE);
-        // curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $ex = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
-        return ["status"=>$httpCode,"body"=>$ex];
-    }
+  private $URL,$HEADER,$OPTION;
+  function __construct($url){
+      $this->URL=$url;
+      $this->HEADER=[
+          "Cache-Control"=>"no-cache",
+          "Content-Type"=>"application/json",
+          "Accept"=>"application/json",
+      ];
+      $this->OPTION=["timeout"=>30,"checkssl"=>0];
+  }
+  static function to($url) { 
+    $url=explode("?",$url);
+    $q=ISSET($url[1])? "?".str_replace(" ","+",$url[1]): ""; 
+    return new self("$url[0]$q"); 
+  }
+  private function getHeaderValue($p){ return $this->HEADER[$p]; }
+  private function getHeader(){
+      $t=[];
+      foreach($this->HEADER as $k=>$v){ array_push($t,"$k: $v"); }
+      return $t;
+  }
+  private function jsonify($j){ return !empty(json_decode($j)) ? json_decode($j) : $j; }
+  public function header($header){
+      $this->HEADER=array_merge($this->HEADER,$header); return $this;
+  }
+  public function options($opts){
+      $this->OPTION=array_merge($this->OPTION,$opts); return $this;
+  }
+  public function get(){
+      try {
+          $ch = curl_init();
+          curl_setopt($ch, CURLOPT_URL, $this->URL);
+          curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+          curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+          curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+          curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+          $ex = curl_exec($ch);
+          // var_dump($ex );
+          if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+          $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+          curl_close($ch);
+          if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+          return (object)["status"=>$httpCode,"body"=>$ex];
+      } catch(Exception $e) {
+          trigger_error( sprintf( 'Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
+      } finally {
+          if (is_resource($ch)) { curl_close($ch); }
+      }
+  }
+  public function post($data){
+      try {
+          $ch = curl_init();
+          curl_setopt($ch, CURLOPT_URL, $this->URL);
+          curl_setopt($ch, CURLOPT_POST, TRUE);
+          if(gettype($data)=="array" && $this->getHeaderValue("Content-Type")=="application/json"){
+              $data=json_encode($data);
+          }else{
+              $data=http_build_query($data);
+          }
+          curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+          curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+          curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+          curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+          curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+          $ex = curl_exec($ch);
+          if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+          $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+          curl_close($ch);
+          if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+          return (object)["status"=>$httpCode,"body"=>$ex];
+      } catch(Exception $e) {
+          trigger_error( sprintf( 'Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
+      } finally {
+          if (is_resource($ch)) { curl_close($ch); }
+      }
+  }
+  public function put($data){
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $this->URL);
+      curl_setopt($ch, CURLOPT_POST, TRUE);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+      curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
+      curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+      curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+      $ex = curl_exec($ch);
+      if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+      return (object)["status"=>$httpCode,"body"=>$ex];
+  }
+  public function patch($data){
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $this->URL);
+      curl_setopt($ch, CURLOPT_POST, TRUE);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
+      curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
+      curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+      curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+      $ex = curl_exec($ch);
+      if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+      return (object)["status"=>$httpCode,"body"=>$ex];
+  }
+  public function DELETE(){
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $this->URL);
+      curl_setopt($ch, CURLOPT_POST, TRUE);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+      curl_setopt($ch, CURLOPT_TIMEOUT, $this->OPTION["timeout"]);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getHeader());
+      curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+      // curl_setopt($ch, CURLOPT_HEADER, TRUE);
+      // curl_setopt($ch, CURLOPT_NOBODY, TRUE); // remove body
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->OPTION["checkssl"]);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->OPTION["checkssl"]);
+      $ex = curl_exec($ch);
+      if ($ex === false) { throw new Exception(curl_error($ch), curl_errno($ch)); }
+      $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      if($this->getHeaderValue("Accept")=="application/json"){$ex=$this->jsonify($ex);}
+      return (object)["status"=>$httpCode,"body"=>$ex];
+  }
 }
 
 class Rest{
